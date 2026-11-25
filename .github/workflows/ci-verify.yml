@@ -1,0 +1,36 @@
+name: CI Verify (DB-GPT)
+
+on:
+  push:
+    branches: ["ci/gha-verify"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - name: Clone upstream source
+        run: git clone --depth=1 --branch main https://github.com/eosphoros-ai/DB-GPT.git source
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install build backend
+        run: python -m pip install -U pip build
+      - name: Build wheel
+        working-directory: source
+        run: python -m build --wheel
+      - name: Show artifacts
+        working-directory: source
+        run: ls -lh dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dbgpt-wheel
+          path: source/dist/*.whl
