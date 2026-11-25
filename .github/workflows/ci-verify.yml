@@ -15,22 +15,22 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       - name: Clone upstream source
         run: git clone --depth=1 --branch main https://github.com/eosphoros-ai/DB-GPT.git source
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install build backend
-        run: python -m pip install -U pip build
-      - name: Build wheel
+      - name: Install uv
+        run: python -m pip install -U pip uv
+      - name: Build all workspace wheels
         working-directory: source
-        run: python -m build --wheel
+        run: uv build --all-packages --wheel
       - name: Show artifacts
         working-directory: source
-        run: ls -lh dist
+        run: ls -lh dist | head -20
       - uses: actions/upload-artifact@v4
         with:
-          name: dbgpt-wheel
+          name: dbgpt-wheels
           path: source/dist/*.whl
